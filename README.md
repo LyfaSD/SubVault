@@ -60,25 +60,6 @@ npm run dev
 http://localhost:5173
 ```
 
-### Demo logins
-```
-Admin:  admin@subvault.com  / admin123
-User:   jean@example.com    / password123
-```
 
----
-
-## Environment Variables
-
-### backend/.env
-```
-PORT=5000
-JWT_SECRET=supersecretkey123
-```
-
-### frontend/.env
-```
-VITE_API_URL=http://localhost:5000/api
-```
 
 > No database credentials needed — SQLite is a local file, created automatically.
