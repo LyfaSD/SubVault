@@ -9,7 +9,7 @@ const app = express();
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://subvault.vercel.app', // replace with your actual Vercel URL
+    'https://sub-vault-sand.vercel.app/login', // replace with your actual Vercel URL
   ],
   credentials: true,
 }));
