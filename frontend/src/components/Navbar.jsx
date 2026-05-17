@@ -1,16 +1,62 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { formatCurrency } from '../utils/dateHelpers';
+import { useState } from 'react';
+import { useBreakpoint } from '../utils/useBreakpoint';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const { isMobile } = useBreakpoint();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const balance  = Number(user?.balance || 0);
+  const balColor = balance < 5000 ? 'var(--red-soft)' : balance < 20000 ? 'var(--amber)' : 'var(--green)';
 
   const initials = user?.name
     ?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
 
   const isActive = (path) => location.pathname === path;
 
+  if (isMobile) {
+  return (
+    <>
+      <nav style={{ ...styles.nav, padding: '10px 14px' }}>
+        <div style={styles.logo}>◈ SubVault</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={styles.avatar}>{initials}</div>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 6, padding: '4px 8px', color: 'var(--text)', fontSize: 16 }}
+          >
+            {menuOpen ? '✕' : '☰'}
+          </button>
+        </div>
+      </nav>
+
+      {menuOpen && (
+        <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 4 }}>
+            {user?.name} — <span style={{ color: balColor, fontWeight: 700 }}>{formatCurrency(balance)}</span>
+          </div>
+          <Link to="/" onClick={() => setMenuOpen(false)}
+            style={{ ...styles.tab, ...(isActive('/') ? styles.tabActive : {}), textAlign: 'center' }}>
+            Dashboard
+          </Link>
+          {user?.isAdmin && (
+            <Link to="/admin" onClick={() => setMenuOpen(false)}
+              style={{ ...styles.tab, ...(isActive('/admin') ? styles.tabActive : {}), textAlign: 'center' }}>
+              Admin
+            </Link>
+          )}
+          <button className="btn btn-sm" onClick={logout}
+            style={{ width: '100%', justifyContent: 'center' }}>
+            Logout
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
   return (
     <nav style={styles.nav}>
       <div style={styles.logo}>◈ SubVault</div>

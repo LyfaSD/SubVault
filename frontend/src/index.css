@@ -105,3 +105,34 @@ input, select { font-family: inherit; }
 .dot { width: 7px; height: 7px; border-radius: 50%; animation: pulse 2s infinite; }
 .dot-green { background: var(--green); }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+/* ─── Responsive overrides ─── */
+@media (max-width: 639px) {
+  .modal {
+    width: 90vw !important;
+    padding: 18px;
+  }
+  .modal-actions {
+    flex-direction: column;
+  }
+  .modal-actions button {
+    width: 100%;
+  }
+  #toast-container {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+  }
+  .toast {
+    max-width: 100%;
+  }
+  .table th,
+  .table td {
+    padding: 8px;
+    font-size: 11px;
+  }
+  .btn {
+    font-size: 11px;
+    padding: 7px 12px;
+  }
+}

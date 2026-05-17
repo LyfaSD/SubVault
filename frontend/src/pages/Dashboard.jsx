@@ -7,6 +7,7 @@ import BalanceWidget      from '../components/BalanceWidget';
 import AlertBanner        from '../components/AlertBanner';
 import SubscriptionCard   from '../components/SubscriptionCard';
 import SubscriptionModal  from '../components/SubscriptionModal';
+import { useBreakpoint } from '../utils/useBreakpoint';
 
 function StatCard({ label, value, color, sub }) {
   return (
@@ -20,6 +21,7 @@ function StatCard({ label, value, color, sub }) {
 
 export default function Dashboard() {
   const { user, updateBalance } = useAuth();
+  const { isMobile, isTablet } = useBreakpoint();
   const toast = useToast();
 
   const [subs, setSubs]           = useState([]);
@@ -98,7 +100,7 @@ export default function Dashboard() {
       <AlertBanner subscriptions={subs} />
 
       {/* Stats */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: isMobile ? 8 : 12, marginBottom: 20 }}>
         <StatCard label="Active"        value={activeSubs.length}          color="var(--green)"  sub="subscriptions" />
         <StatCard label="Expiring Soon" value={expiringSubs.length}        color="var(--amber)"  sub="within 7 days" />
         <StatCard label="Monthly Cost"  value={formatCurrency(monthlyTotal)} color="var(--accent)" sub="total recurring" />
@@ -118,7 +120,7 @@ export default function Dashboard() {
           No subscriptions yet. Click <strong style={{ color:'var(--accent)' }}>+ Add</strong> to get started.
         </div>
       ) : (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(270px,1fr))', gap:14, marginBottom:24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill, minmax(270px,1fr))', gap: isMobile ? 10 : 14, marginBottom: 24 }}>
           {subs.map((sub) => (
             <SubscriptionCard
               key={sub.id}
@@ -137,24 +139,26 @@ export default function Dashboard() {
         <>
           <div className="section-title" style={{ marginTop:8 }}>Recent Transactions</div>
           <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', padding:0 }}>
-            <table className="table">
-              <thead>
-                <tr><th>Status</th><th>Subscription</th><th>Amount</th><th>Type</th><th>Date</th></tr>
-              </thead>
-              <tbody>
-                {txs.slice(0, 10).map((tx) => (
-                  <tr key={tx.id}>
-                    <td><span className={`badge ${tx.status === 'success' ? 'badge-green' : 'badge-red'}`}>{tx.status}</span></td>
-                    <td>{tx.Subscription?.icon} {tx.Subscription?.name}</td>
-                    <td style={{ color: tx.status==='success' ? 'var(--green)' : 'var(--red-soft)', fontWeight:700 }}>
-                      {tx.status==='success' ? '-' : ''}{formatCurrency(tx.amount)}
-                    </td>
-                    <td style={{ color:'var(--muted)', fontSize:11 }}>{tx.triggeredBy}</td>
-                    <td style={{ color:'var(--muted)', fontSize:11 }}>{new Date(tx.createdAt).toLocaleDateString('en-US')}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="table">
+                <thead>
+                  <tr><th>Status</th><th>Subscription</th><th>Amount</th><th>Type</th><th>Date</th></tr>
+                </thead>
+                <tbody>
+                  {txs.slice(0, 10).map((tx) => (
+                    <tr key={tx.id}>
+                      <td><span className={`badge ${tx.status === 'success' ? 'badge-green' : 'badge-red'}`}>{tx.status}</span></td>
+                      <td>{tx.Subscription?.icon} {tx.Subscription?.name}</td>
+                      <td style={{ color: tx.status==='success' ? 'var(--green)' : 'var(--red-soft)', fontWeight:700 }}>
+                        {tx.status==='success' ? '-' : ''}{formatCurrency(tx.amount)}
+                      </td>
+                      <td style={{ color:'var(--muted)', fontSize:11 }}>{tx.triggeredBy}</td>
+                      <td style={{ color:'var(--muted)', fontSize:11 }}>{new Date(tx.createdAt).toLocaleDateString('en-US')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { admin as adminApi } from '../utils/api';
 import { useToast } from '../context/ToastContext';
 import { formatCurrency, formatDate, daysRemaining } from '../utils/dateHelpers';
+import { useBreakpoint } from '../utils/useBreakpoint';
 
 function StatCard({ label, value, color }) {
   return (
@@ -22,6 +23,7 @@ export default function Admin() {
   const [tab, setTab]       = useState('overview');
   const [editBal, setEditBal]   = useState(null);
   const [newBal, setNewBal]     = useState('');
+  const { isMobile } = useBreakpoint();
 
   const load = async () => {
     setLoading(true);
@@ -74,7 +76,7 @@ export default function Admin() {
       </div>
 
       {/* Sub-tabs */}
-      <div style={{ display:'flex', gap:4, marginBottom:20, background:'var(--surface)', borderRadius:10, padding:4, border:'1px solid var(--border)' }}>
+      <div style={{ display:'flex', gap:4, marginBottom:20, background:'var(--surface)', borderRadius:10, padding:4, border:'1px solid var(--border)', overflowX: 'auto' }}>
         {TABS.map((t) => (
           <button key={t} onClick={() => setTab(t)} style={{
             flex:1, padding:7, border:'none', borderRadius:8, fontSize:11, fontWeight:600, letterSpacing:.5,
@@ -88,7 +90,7 @@ export default function Admin() {
       {/* ── OVERVIEW ── */}
       {tab === 'overview' && stats && (
         <>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:12, marginBottom:24 }}>
+          <div style={{ display:'grid', gridTemplateColumns:isMobile ? 'repeat(2,1fr)' : 'repeat(5,1fr)', gap:12, marginBottom:24 }}>
             <StatCard label="Total Users"        value={stats.totalUsers}    color="var(--accent)" />
             <StatCard label="Active Subs"         value={stats.totalSubs}     color="var(--green)" />
             <StatCard label="Expiring (7d)"       value={stats.expiringSoon}  color="var(--amber)" />
@@ -97,7 +99,7 @@ export default function Admin() {
           </div>
 
           <div className="section-title">Users at a Glance</div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:12 }}>
+          <div style={{ display:'grid', gridTemplateColumns:isMobile ? '1fr' : 'repeat(auto-fill,minmax(260px,1fr))', gap:12 }}>
             {users.map((u) => {
               const bal = Number(u.balance);
               const bc  = bal < 5000 ? 'var(--red-soft)' : bal < 20000 ? 'var(--amber)' : 'var(--green)';
@@ -137,74 +139,80 @@ export default function Admin() {
       {/* ── USERS ── */}
       {tab === 'users' && (
         <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', padding:0 }}>
-          <table className="table">
-            <thead><tr><th>Name</th><th>Email</th><th>Balance</th><th>Subs</th><th>Role</th><th>Joined</th><th>Action</th></tr></thead>
-            <tbody>
-              {users.map((u) => {
-                const bal = Number(u.balance);
-                const bc  = bal < 5000 ? 'var(--red-soft)' : bal < 20000 ? 'var(--amber)' : 'var(--green)';
-                return (
-                  <tr key={u.id}>
-                    <td style={{ fontWeight:600 }}>{u.name}</td>
-                    <td style={{ color:'var(--muted)' }}>{u.email}</td>
-                    <td style={{ color:bc, fontWeight:700 }}>{formatCurrency(bal)}</td>
-                    <td>{u.subCount}</td>
-                    <td><span className={`badge ${u.isAdmin ? 'badge-blue' : 'badge-gray'}`}>{u.isAdmin ? 'Admin' : 'User'}</span></td>
-                    <td style={{ color:'var(--muted)', fontSize:11 }}>{formatDate(u.createdAt)}</td>
-                    <td><button className="btn btn-sm" onClick={() => { setEditBal(u); setNewBal(String(u.balance)); }}>Edit Balance</button></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="table" style={{ minWidth: 520 }}>
+              <thead><tr><th>Name</th><th>Email</th><th>Balance</th><th>Subs</th><th>Role</th><th>Joined</th><th>Action</th></tr></thead>
+              <tbody>
+                {users.map((u) => {
+                  const bal = Number(u.balance);
+                  const bc  = bal < 5000 ? 'var(--red-soft)' : bal < 20000 ? 'var(--amber)' : 'var(--green)';
+                  return (
+                    <tr key={u.id}>
+                      <td style={{ fontWeight:600 }}>{u.name}</td>
+                      <td style={{ color:'var(--muted)' }}>{u.email}</td>
+                      <td style={{ color:bc, fontWeight:700 }}>{formatCurrency(bal)}</td>
+                      <td>{u.subCount}</td>
+                      <td><span className={`badge ${u.isAdmin ? 'badge-blue' : 'badge-gray'}`}>{u.isAdmin ? 'Admin' : 'User'}</span></td>
+                      <td style={{ color:'var(--muted)', fontSize:11 }}>{formatDate(u.createdAt)}</td>
+                      <td><button className="btn btn-sm" onClick={() => { setEditBal(u); setNewBal(String(u.balance)); }}>Edit Balance</button></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
       {/* ── SUBSCRIPTIONS ── */}
       {tab === 'subscriptions' && (
         <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', padding:0 }}>
-          <table className="table">
-            <thead><tr><th>User</th><th>Subscription</th><th>Price</th><th>Expiry</th><th>Days Left</th><th>Auto</th><th>Action</th></tr></thead>
-            <tbody>
-              {subs.map((sub) => {
-                const d  = daysRemaining(sub.expiryDate);
-                const dc = d < 0 ? 'var(--red-soft)' : d <= 2 ? 'var(--red-soft)' : d <= 7 ? 'var(--amber)' : 'var(--green)';
-                return (
-                  <tr key={sub.id}>
-                    <td style={{ color:'var(--muted)', fontSize:11 }}>{sub.User?.name}</td>
-                    <td>{sub.icon} {sub.name}</td>
-                    <td>{formatCurrency(sub.price)}</td>
-                    <td style={{ fontSize:11 }}>{formatDate(sub.expiryDate)}</td>
-                    <td style={{ color:dc, fontWeight:700 }}>{d < 0 ? `${-d}d ago` : d===0 ? 'Today' : `${d}d`}</td>
-                    <td><span className={`badge ${sub.autoRenew ? 'badge-green' : 'badge-gray'}`}>{sub.autoRenew ? 'Yes' : 'No'}</span></td>
-                    <td><button className="btn btn-sm" onClick={() => handleResetSub(sub)}>Reset +30d</button></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="table" style={{ minWidth: 520 }}>
+              <thead><tr><th>User</th><th>Subscription</th><th>Price</th><th>Expiry</th><th>Days Left</th><th>Auto</th><th>Action</th></tr></thead>
+              <tbody>
+                {subs.map((sub) => {
+                  const d  = daysRemaining(sub.expiryDate);
+                  const dc = d < 0 ? 'var(--red-soft)' : d <= 2 ? 'var(--red-soft)' : d <= 7 ? 'var(--amber)' : 'var(--green)';
+                  return (
+                    <tr key={sub.id}>
+                      <td style={{ color:'var(--muted)', fontSize:11 }}>{sub.User?.name}</td>
+                      <td>{sub.icon} {sub.name}</td>
+                      <td>{formatCurrency(sub.price)}</td>
+                      <td style={{ fontSize:11 }}>{formatDate(sub.expiryDate)}</td>
+                      <td style={{ color:dc, fontWeight:700 }}>{d < 0 ? `${-d}d ago` : d===0 ? 'Today' : `${d}d`}</td>
+                      <td><span className={`badge ${sub.autoRenew ? 'badge-green' : 'badge-gray'}`}>{sub.autoRenew ? 'Yes' : 'No'}</span></td>
+                      <td><button className="btn btn-sm" onClick={() => handleResetSub(sub)}>Reset +30d</button></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
       {/* ── TRANSACTIONS ── */}
       {tab === 'transactions' && (
         <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', padding:0 }}>
-          <table className="table">
-            <thead><tr><th>Status</th><th>User</th><th>Subscription</th><th>Amount</th><th>Trigger</th><th>Fail Reason</th><th>Date</th></tr></thead>
-            <tbody>
-              {txs.map((tx) => (
-                <tr key={tx.id}>
-                  <td><span className={`badge ${tx.status==='success' ? 'badge-green' : 'badge-red'}`}>{tx.status}</span></td>
-                  <td style={{ fontSize:11, color:'var(--muted)' }}>{tx.User?.name}</td>
-                  <td>{tx.Subscription?.icon} {tx.Subscription?.name}</td>
-                  <td style={{ color: tx.status==='success' ? 'var(--green)' : 'var(--red-soft)', fontWeight:700 }}>{formatCurrency(tx.amount)}</td>
-                  <td style={{ fontSize:11, color:'var(--muted)' }}>{tx.triggeredBy}</td>
-                  <td style={{ fontSize:11, color:'var(--red-soft)' }}>{tx.failReason || '—'}</td>
-                  <td style={{ fontSize:11, color:'var(--muted)' }}>{new Date(tx.createdAt).toLocaleDateString('en-US')}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="table" style={{ minWidth: 520 }}>
+              <thead><tr><th>Status</th><th>User</th><th>Subscription</th><th>Amount</th><th>Trigger</th><th>Fail Reason</th><th>Date</th></tr></thead>
+              <tbody>
+                {txs.map((tx) => (
+                  <tr key={tx.id}>
+                    <td><span className={`badge ${tx.status==='success' ? 'badge-green' : 'badge-red'}`}>{tx.status}</span></td>
+                    <td style={{ fontSize:11, color:'var(--muted)' }}>{tx.User?.name}</td>
+                    <td>{tx.Subscription?.icon} {tx.Subscription?.name}</td>
+                    <td style={{ color: tx.status==='success' ? 'var(--green)' : 'var(--red-soft)', fontWeight:700 }}>{formatCurrency(tx.amount)}</td>
+                    <td style={{ fontSize:11, color:'var(--muted)' }}>{tx.triggeredBy}</td>
+                    <td style={{ fontSize:11, color:'var(--red-soft)' }}>{tx.failReason || '—'}</td>
+                    <td style={{ fontSize:11, color:'var(--muted)' }}>{new Date(tx.createdAt).toLocaleDateString('en-US')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
