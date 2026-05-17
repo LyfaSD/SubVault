@@ -5,13 +5,17 @@ let sequelize;
 
 if (process.env.TURSO_URL && process.env.TURSO_TOKEN) {
   // Production — Turso cloud SQLite
+  const { createClient } = require('@libsql/client');
+
+  const client = createClient({
+    url: process.env.TURSO_URL,
+    authToken: process.env.TURSO_TOKEN,
+  });
+
   sequelize = new Sequelize({
     dialect: 'sqlite',
-    dialectModule: require('@libsql/client/sequelize'),
-    storage: process.env.TURSO_URL,
-    dialectOptions: {
-      authToken: process.env.TURSO_TOKEN,
-    },
+    storage: ':memory:',
+    dialectModule: client,
     logging: false,
   });
 } else {
