@@ -75,12 +75,6 @@ export default function Login() {
           {loading ? 'Please wait...' : mode === 'login' ? 'Log In' : 'Create Account'}
         </button>
 
-        {/* Demo hint */}
-        <div style={{ marginTop:16, padding:12, background:'var(--surface2)', borderRadius:8, fontSize:11, color:'var(--muted)' }}>
-          <div style={{ fontWeight:700, marginBottom:4, color:'var(--text)' }}>Demo credentials</div>
-          <div>Admin: admin@subvault.com / admin123</div>
-          <div>User:  jean@example.com / password123</div>
-        </div>
       </div>
     </div>
   );
